@@ -61,8 +61,8 @@ The system exposes several powerful tools via MCP:
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd Pricing-Intelligence
+   git clone https://github.com/isa-group/Pricing-Intelligence-Interpretation-Process.git
+   cd Pricing-Intelligence-Interpretation-Process
    ```
 
 2. **Configure Environment**:
@@ -100,6 +100,24 @@ By default, the Harvey agent is configured to use a specific OpenAI model (e.g.,
 - **Amint API**: http://localhost:8001
 - **CSP Service**: http://localhost:8000
 
+## 📦 Published container images
+
+Every release (`vX.Y.Z` tag) publishes one image per service to the GitHub Container Registry, tagged with the version without the leading `v` (release `v1.2.0` → tag `1.2.0`, plus `1.2`). Images are built for `linux/amd64`.
+
+| Service | Directory | Image | Port | Needs an OpenAI key |
+|---------|-----------|-------|------|---------------------|
+| Harvey API | `harvey_api/` | `ghcr.io/isa-group/harvey` | 8086 | Yes |
+| A-MINT API | `src/` | `ghcr.io/isa-group/a-mint` | 8000 (8001 in compose) | Yes (extraction from URLs) |
+| MCP Server | `mcp_server/` | `ghcr.io/isa-group/pi-mcp-server` | 8085 | No |
+| Analysis API | `analysis_api/` | `ghcr.io/isa-group/pricing-analysis-engine` | 3000 (8002 in compose) | No |
+| CSP Service (Choco) | `csp/` | `ghcr.io/isa-group/choco-pricing-analysis-engine` | 8000 | No |
+
+```bash
+docker pull ghcr.io/isa-group/harvey:1.2.0
+```
+
+These images are the AI services used by [SPHERE](https://github.com/SCORELabUS/SPHERE). Each SPHERE release pins them by version and digest in its Docker Compose files, so a SPHERE release always runs the same build of these services.
+
 ## 📝 Usage Example
 
 1. Open the Frontend.
@@ -111,5 +129,4 @@ By default, the Harvey agent is configured to use a specific OpenAI model (e.g.,
 
 ## 📄 License
 
-This project is licensed under the **Creative Commons Attribution 4.0 International (CC BY 4.0)**.
-See the [LICENSE](LICENSE) file for details.
+This project is released under the [MIT License](LICENSE).
