@@ -1,5 +1,7 @@
 name: docker_ci
 
+# Builds one image per service. Pushes to main publish the `main` tag;
+# release tags (vX.Y.Z) publish `X.Y.Z` and `X.Y`, which SPHERE pins by digest.
 on:
   push:
     branches:
@@ -10,56 +12,77 @@ on:
     branches:
       - 'main'
 
+permissions:
+  contents: read
+
 jobs:
   docker:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     strategy:
+      fail-fast: false
       matrix:
         service:
           - name: pricing-analysis-engine
             context: ./analysis_api
             dockerfile: ./analysis_api/Dockerfile
+            description: Pricing analysis engine (PRIME)
           - name: choco-pricing-analysis-engine
             context: .
             dockerfile: ./csp/Dockerfile
+            description: Choco CSP service for pricing analysis
           - name: a-mint
             context: .
             dockerfile: ./src/Dockerfile
+            description: A-MINT pricing extraction service
           - name: harvey
             context: .
             dockerfile: ./harvey_api/Dockerfile
+            description: HARVEY pricing assistant
           - name: pi-mcp-server
             context: ./mcp_server
             dockerfile: ./mcp_server/Dockerfile
+            description: Pricing intelligence MCP server
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v4
-      -
-        name: Docker meta
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 #v4.4.1
+
+      - name: Docker meta
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 #v6.2.0
         with:
-          images: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.service.name }}
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.service.name }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-      -
-        name: Login to DockerHub
+          labels: |
+            org.opencontainers.image.title=${{ matrix.service.name }}
+            org.opencontainers.image.description=${{ matrix.service.description }}
+            org.opencontainers.image.licenses=MIT
+
+      - name: Login to GHCR
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f #v4.6.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      -
-        name: Build and push ${{ matrix.service.name }}
-        uses: docker/build-push-action@v5
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.service.name }}
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc #v7.4.0
         with:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.dockerfile }}
+          platforms: linux/amd64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
