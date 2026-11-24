@@ -61,7 +61,7 @@ The system exposes several powerful tools via MCP:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/isa-group/Pricing-Intelligence-Interpretation-Process.git
+   git clone https://github.com/SCORELabUS/Pricing-Intelligence-Interpretation-Process.git
    cd Pricing-Intelligence-Interpretation-Process
    ```
 
@@ -102,18 +102,18 @@ By default, the Harvey agent is configured to use a specific OpenAI model (e.g.,
 
 ## 📦 Published container images
 
-Every release (`vX.Y.Z` tag) publishes one image per service to the GitHub Container Registry, tagged with the version without the leading `v` (release `v1.2.0` → tag `1.2.0`, plus `1.2`). Images are built for `linux/amd64`.
+Every release (`vX.Y.Z` tag) publishes one image per service to the GitHub Container Registry, tagged with the version without the leading `v` (release `v1.2.2` → tag `1.2.2`, plus `1.2`). Images are built for `linux/amd64`.
 
 | Service | Directory | Image | Port | Needs an OpenAI key |
 |---------|-----------|-------|------|---------------------|
-| Harvey API | `harvey_api/` | `ghcr.io/isa-group/harvey` | 8086 | Yes |
-| A-MINT API | `src/` | `ghcr.io/isa-group/a-mint` | 8000 (8001 in compose) | Yes (extraction from URLs) |
-| MCP Server | `mcp_server/` | `ghcr.io/isa-group/pi-mcp-server` | 8085 | No |
-| Analysis API | `analysis_api/` | `ghcr.io/isa-group/pricing-analysis-engine` | 3000 (8002 in compose) | No |
-| CSP Service (Choco) | `csp/` | `ghcr.io/isa-group/choco-pricing-analysis-engine` | 8000 | No |
+| Harvey API | `harvey_api/` | `ghcr.io/scorelabus/harvey` | 8086 | Yes |
+| A-MINT API | `src/` | `ghcr.io/scorelabus/a-mint` | 8000 (8001 in compose) | Yes (extraction from URLs) |
+| MCP Server | `mcp_server/` | `ghcr.io/scorelabus/pi-mcp-server` | 8085 | No |
+| Analysis API | `analysis_api/` | `ghcr.io/scorelabus/pricing-analysis-engine` | 3000 (8002 in compose) | No |
+| CSP Service (Choco) | `csp/` | `ghcr.io/scorelabus/choco-pricing-analysis-engine` | 8000 | No |
 
 ```bash
-docker pull ghcr.io/isa-group/harvey:1.2.0
+docker pull ghcr.io/scorelabus/harvey:1.2.2
 ```
 
 These images are the AI services used by [SPHERE](https://github.com/SCORELabUS/SPHERE). Each SPHERE release pins them by version and digest in its Docker Compose files, so a SPHERE release always runs the same build of these services.

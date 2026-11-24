@@ -194,17 +194,25 @@ You have executed a pricing analysis plan and now need to formulate the final an
 """
 
 
+class LLMUnavailableError(RuntimeError):
+    """Raised when HARVEY is asked a question without an OpenAI API key."""
+
+
 class HarveyAgent:
     def __init__(self, workflow: MCPWorkflowClient) -> None:
         self._workflow = workflow
         settings = get_settings()
-        if not settings.openai_api_key:
-            raise RuntimeError("OPENAI_API_KEY is required for natural language orchestration")
-        client_config = OpenAIClientConfig(
-            api_key=settings.openai_api_key,
-            model=settings.openai_model,
-        )
-        self._llm = OpenAIClient(client_config)
+        # Without a key HARVEY still starts (health checks, uploads), but every
+        # question is refused with LLMUnavailableError.
+        self._llm: Optional[OpenAIClient] = None
+        if settings.openai_api_key:
+            client_config = OpenAIClientConfig(
+                api_key=settings.openai_api_key,
+                model=settings.openai_model,
+            )
+            self._llm = OpenAIClient(client_config)
+        else:
+            logger.warning("harvey.llm.unavailable", reason="OPENAI_API_KEY is not set")
         self._planning_prompt: Optional[str] = None
         self._answer_prompt: Optional[str] = None
         self._spec_excerpt: Optional[str] = None
@@ -215,6 +223,10 @@ class HarveyAgent:
         pricing_urls: Optional[List[str]] = None,
         yaml_contents: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
+        if self._llm is None:
+            raise LLMUnavailableError(
+                "HARVEY is not available: OPENAI_API_KEY is not set on the server."
+            )
         provided_urls = self._deduplicate(pricing_urls or [])
         provided_yamls = [content for content in (yaml_contents or []) if content]
         detected_urls = self._extract_urls_from_question(question)

@@ -1,24 +1,22 @@
 # syntax=docker/dockerfile:1
 FROM python:3.11-slim
+# Same pinned uv as harvey_api, so builds resolve the same way every time.
+COPY --from=ghcr.io/astral-sh/uv:0.9.24 /uv /uvx /bin/
 
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
 
 WORKDIR /app
 
-# Install uv once so dependency installs are reproducible and fast
-RUN apt-get update \
-    && apt-get install --no-install-recommends -y curl \
-    && curl -LsSf https://astral.sh/uv/install.sh | sh \
-    && apt-get purge -y curl \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/*
+# Dependencies come from uv.lock, never from the latest releases on PyPI.
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-install-project
 
-ENV PATH="/root/.local/bin:${PATH}"
-
-COPY pyproject.toml README.md ./
 COPY src ./src
+RUN uv sync --frozen --no-editable
 
-RUN uv pip install --system .
+ENV PATH="/app/.venv/bin:${PATH}"
 
 EXPOSE 8085
 
