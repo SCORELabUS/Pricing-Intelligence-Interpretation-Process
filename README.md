@@ -102,7 +102,7 @@ By default, the Harvey agent is configured to use a specific OpenAI model (e.g.,
 
 ## 📦 Published container images
 
-Every release (`vX.Y.Z` tag) publishes one image per service to the GitHub Container Registry, tagged with the version without the leading `v` (release `v1.2.1` → tag `1.2.1`, plus `1.2`). Images are built for `linux/amd64`.
+Every release (`vX.Y.Z` tag) publishes one image per service to the GitHub Container Registry, tagged with the version without the leading `v` (release `v1.2.2` → tag `1.2.2`, plus `1.2`). Images are built for `linux/amd64`.
 
 | Service | Directory | Image | Port | Needs an OpenAI key |
 |---------|-----------|-------|------|---------------------|
@@ -113,7 +113,7 @@ Every release (`vX.Y.Z` tag) publishes one image per service to the GitHub Conta
 | CSP Service (Choco) | `csp/` | `ghcr.io/scorelabus/choco-pricing-analysis-engine` | 8000 | No |
 
 ```bash
-docker pull ghcr.io/scorelabus/harvey:1.2.1
+docker pull ghcr.io/scorelabus/harvey:1.2.2
 ```
 
 These images are the AI services used by [SPHERE](https://github.com/SCORELabUS/SPHERE). Each SPHERE release pins them by version and digest in its Docker Compose files, so a SPHERE release always runs the same build of these services.
