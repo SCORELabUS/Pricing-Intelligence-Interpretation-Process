@@ -10,7 +10,7 @@ a draft release is created and the changelog data is attached to the release as 
 > like:
 > - [Alex-GF/SPHERE](https://github.com/Alex-GF/SPHERE)
 > - [isa-group/space](https://github.com/isa-group/space)
-> - [isa-group/Pricing-Intelligence-Interpretation-Process](https://github.com/isa-group/Pricing-Intelligence-Interpretation-Process)
+> - [SCORELabUS/Pricing-Intelligence-Interpretation-Process](https://github.com/SCORELabUS/Pricing-Intelligence-Interpretation-Process)
 >
 > We are not responsible for any damage caused by the use of this software.
 
@@ -68,14 +68,14 @@ jobs:
         with:
           fetch-depth: 0
       - name: Generate changelog
-        uses: isa-group/Pricing-Intelligence-Interpretation-Process/.github/actions/sphere-changelog@main
+        uses: SCORELabUS/Pricing-Intelligence-Interpretation-Process/.github/actions/sphere-changelog@main
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
 ```
 
 Configure a different Gemini model (MUST support Structured outputs): 
 ```yaml
-- uses: isa-group/Pricing-Intelligence-Interpretation-Process/.github/actions/sphere-changelog@main
+- uses: SCORELabUS/Pricing-Intelligence-Interpretation-Process/.github/actions/sphere-changelog@main
   with:
     gemini_model_id: gemini-2.5-flash-lite
     gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
@@ -83,7 +83,7 @@ Configure a different Gemini model (MUST support Structured outputs):
 
 Configure commit threshold:
 ```yaml
-- uses: isa-group/Pricing-Intelligence-Interpretation-Process/.github/actions/sphere-changelog@main
+- uses: SCORELabUS/Pricing-Intelligence-Interpretation-Process/.github/actions/sphere-changelog@main
   with:
     commit_threshold: 30
     gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
