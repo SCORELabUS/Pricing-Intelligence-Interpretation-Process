@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 from sse_starlette import EventSourceResponse
 from pydantic import BaseModel, HttpUrl
 
+from .agent import LLMUnavailableError
 from .clients import MCPClientError
 from .container import container, lifespan
 from .file_manager import FileManager
@@ -122,6 +123,8 @@ async def chat(
             pricing_urls=pricing_urls,
             yaml_contents=pricing_yamls,
         )
+    except LLMUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except MCPClientError as exc:

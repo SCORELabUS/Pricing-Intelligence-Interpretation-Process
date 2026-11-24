@@ -96,3 +96,11 @@ def test_chat_multiple_urls(monkeypatch):
     assert pricing_context_db[test_url_first["url"]] is not None
     for test_url in test_urls:
         assert pricing_context_db[test_url["url"]].id == test_url["id"]
+
+
+def test_chat_without_openai_key(monkeypatch):
+    monkeypatch.setattr(container.agent, "_llm", None)
+
+    response = client.post("/chat", json={"question": "Will it work?"})
+    assert response.status_code == 503
+    assert "OPENAI_API_KEY" in response.json()["detail"]
