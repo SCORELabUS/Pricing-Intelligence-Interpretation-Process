@@ -4,7 +4,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from openai import (
     APIConnectionError,
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 class OpenAIClientConfig:
     api_key: str
     model: str
+    base_url: Optional[str] = None
     api_retry_attempts: int = 5
     api_retry_backoff: float = 1.0
     api_retry_backoff_max: float = 8.0
@@ -34,7 +35,11 @@ class OpenAIClient:
 
     def __init__(self, config: OpenAIClientConfig) -> None:
         self._config = config
-        self._client = OpenAI(api_key=config.api_key)
+        client_kwargs: Dict[str, Any] = {"api_key": config.api_key}
+        # Without a base URL the SDK keeps its default (OPENAI_BASE_URL or api.openai.com).
+        if config.base_url:
+            client_kwargs["base_url"] = config.base_url
+        self._client = OpenAI(**client_kwargs)
 
     def make_full_request(
         self,

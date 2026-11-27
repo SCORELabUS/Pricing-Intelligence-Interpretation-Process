@@ -209,6 +209,7 @@ class HarveyAgent:
             client_config = OpenAIClientConfig(
                 api_key=settings.openai_api_key,
                 model=settings.openai_model,
+                base_url=settings.openai_base_url,
             )
             self._llm = OpenAIClient(client_config)
         else:
