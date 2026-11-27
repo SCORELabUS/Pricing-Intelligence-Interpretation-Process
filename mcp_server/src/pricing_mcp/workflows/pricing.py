@@ -24,9 +24,32 @@ class PricingWorkflow:
         self._analysis = analysis_client
         self._cache = cache
         self._cache_ttl = settings.cache_ttl_seconds
+        self._amint_model = settings.amint_llm_model
+        self._amint_better_model = settings.amint_llm_better_model
+        self._amint_llm_base_url = settings.amint_llm_base_url
+
+    def _transform_options(self, url: str) -> TransformOptions:
+        return TransformOptions(
+            url=url,
+            model=self._amint_model,
+            better_model=self._amint_better_model,
+            base_url_override=self._amint_llm_base_url,
+        )
+
+    def _pricing_cache_key(self, url: str) -> str:
+        # The LLM configuration is part of the key, so changing the model or the
+        # endpoint never serves YAML extracted with the previous configuration.
+        return "|".join(
+            (
+                f"pricing:{url}",
+                self._amint_model,
+                self._amint_better_model,
+                self._amint_llm_base_url,
+            )
+        )
 
     async def ensure_pricing_yaml(self, url: str, refresh: bool = False) -> str:
-        cache_key = f"pricing:{url}"
+        cache_key = self._pricing_cache_key(url)
         if not refresh:
             cached = await self._cache.get(cache_key)
             if cached:
@@ -35,7 +58,7 @@ class PricingWorkflow:
 
         logger.info("pricing.workflow.cache.miss", url=url, refresh=refresh)
         try:
-            yaml_content = await self._amint.transform(TransformOptions(url=url))
+            yaml_content = await self._amint.transform(self._transform_options(url))
         except AMintError as exc:  # pragma: no cover - network dependent
             logger.error("pricing.workflow.transform.failed", url=url, error=str(exc))
             raise
