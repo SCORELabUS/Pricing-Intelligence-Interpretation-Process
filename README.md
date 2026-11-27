@@ -81,15 +81,61 @@ The system exposes several powerful tools via MCP:
 ### ⚙️ Configuration
 
 #### Changing the OpenAI Model
-By default, the Harvey agent is configured to use a specific OpenAI model (e.g., `gpt-5.2`). To switch to a different model (such as `gpt-4o` or `gpt-3.5-turbo`), modify the `OPENAI_MODEL` environment variable in the `harvey-api` service within `docker-compose.yml`:
+In `docker-compose.yml`, the Harvey agent uses `gpt-5-nano`. To switch to a different model, change the `OPENAI_MODEL` environment variable of the `harvey-api` service:
 
 ```yaml
   harvey-api:
     # ...
     environment:
-      - OPENAI_MODEL=gpt-5.2
+      - OPENAI_MODEL=gpt-5-nano
       # ...
 ```
+
+If `OPENAI_MODEL` is not set at all (for example, when running `harvey_api` outside Docker Compose), HARVEY falls back to `gpt-5`.
+
+#### Using an OpenAI-compatible endpoint (e.g., a self-hosted model)
+Both HARVEY and A-MINT can call any API compatible with OpenAI's (Ollama, vLLM, LM Studio or a compatible provider) through environment variables alone. When they are not set, everything keeps using `https://api.openai.com/v1` with the models above.
+
+| Service | Variable | Purpose | Default |
+|---------|----------|---------|---------|
+| `harvey-api` | `OPENAI_BASE_URL` | Base URL of the API HARVEY calls | OpenAI SDK default (`https://api.openai.com/v1`) |
+| `harvey-api` | `OPENAI_MODEL` | Model HARVEY uses | `gpt-5-nano` in compose |
+| `harvey-api` | `OPENAI_API_KEY` | Key for that API | `${HARVEY_API_KEY}` |
+| `mcp-server` | `AMINT_LLM_BASE_URL` | Base URL A-MINT calls to extract pricings | `https://api.openai.com/v1` |
+| `mcp-server` | `AMINT_LLM_MODEL` | Model A-MINT uses for extraction | `gpt-5.2` |
+| `mcp-server` | `AMINT_LLM_BETTER_MODEL` | Model A-MINT uses for its higher-quality steps | `gpt-5.2` |
+| `a-mint-api` | `OPENAI_API_KEY` / `OPENAI_API_KEYS` | Key (or comma-separated keys) A-MINT sends to that API | `${AMINT_API_KEY}` / `${AMINT_API_KEYS}` |
+
+The MCP server sends the A-MINT model and base URL with each transformation request; the key stays in the `a-mint-api` service. Cached pricings are keyed by model and base URL, so changing either extracts the pricing again.
+
+Example with [Ollama](https://ollama.com) running on the host:
+
+```yaml
+  a-mint-api:
+    environment:
+      - OPENAI_API_KEY=ollama            # Ollama ignores the key, but one must be set
+      # ...
+
+  mcp-server:
+    environment:
+      - AMINT_LLM_BASE_URL=http://host.docker.internal:11434/v1
+      - AMINT_LLM_MODEL=qwen3:32b
+      - AMINT_LLM_BETTER_MODEL=qwen3:32b
+      # ...
+
+  harvey-api:
+    environment:
+      - OPENAI_API_KEY=ollama
+      - OPENAI_BASE_URL=http://host.docker.internal:11434/v1
+      - OPENAI_MODEL=qwen3:32b
+      # ...
+    # On Linux, also map the host:
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+```
+
+> [!WARNING]
+> HARVEY needs a model that supports tool calling and JSON output: it plans which MCP tools to call as a JSON document, and models that cannot produce it reliably fail to plan or answer. HARVEY calls `/chat/completions` with `reasoning_effort="high"`, so the endpoint must accept (or ignore) that parameter. The published quality of HARVEY and A-MINT was measured with commercial OpenAI models; results with other models may differ.
 
 ### Accessing the Services
 
