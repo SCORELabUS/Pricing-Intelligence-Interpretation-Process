@@ -21,6 +21,19 @@ class Settings(BaseSettings):
     amint_base_url: AnyHttpUrl = Field(..., description="A-MINT API base URL")
     amint_api_key: Optional[str] = Field(default=None, description="API key for A-MINT if required")
 
+    # LLM used by A-MINT to extract pricings (any OpenAI-compatible endpoint).
+    # The API key is configured in the A-MINT service itself.
+    amint_llm_model: str = Field(
+        default="gpt-5.2", description="Model A-MINT uses to extract pricings"
+    )
+    amint_llm_better_model: str = Field(
+        default="gpt-5.2", description="Model A-MINT uses for higher-quality steps"
+    )
+    amint_llm_base_url: str = Field(
+        default="https://api.openai.com/v1",
+        description="Base URL of the OpenAI-compatible API A-MINT calls",
+    )
+
     analysis_base_url: AnyHttpUrl = Field(..., description="Analysis API base URL")
     analysis_api_key: Optional[str] = Field(
         default=None, description="API key for Analysis API if enforced"

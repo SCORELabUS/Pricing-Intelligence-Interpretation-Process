@@ -55,6 +55,10 @@ class Settings(BaseSettings):
         default="gpt-5",
         description="OpenAI model to use for H.A.R.V.E.Y. assistant",
     )
+    openai_base_url: Optional[str] = Field(
+        default=None,
+        description="Base URL of an OpenAI-compatible API; None uses the OpenAI SDK default",
+    )
 
 
 @lru_cache
